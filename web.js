@@ -7,7 +7,7 @@ var infile = "index.html";
 app.get('/', function(request, response) {
   fs.readFileSync(infile, function (err, data) {
     if (err) throw err;
-    response.send(data);
+    response.send(data.toString("utf-8",0,27));
   });
 });
 
