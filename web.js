@@ -6,7 +6,7 @@ var infile = "index.html";
 
 app.get('/', function(request, response) {
   var buffer = fs.readFileSync(infile, "utf8");
-  response.send(buffer.toString("utf-8",0,27));
+  response.send(buffer);
  
 });
 
