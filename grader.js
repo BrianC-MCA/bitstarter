@@ -29,13 +29,14 @@ var HTMLFILE_DEFAULT = "index.html";
 var CHECKSFILE_DEFAULT = "checks.json";
 var DOWNLOAD_DEFAULT = "http://floating-badlands-4396.herokuapp.com/index.html";
 var indexFile = "index.html";
+var validDownloadFileSpecified = false;
 
 var assertFileExists = function(infile) {
     var instr = infile.toString();
     var exist = fs.existsSync(instr);
     if (!exist) {
-        console.log("%s does not exist. Exiting.", instr);
-        process.exit(1);
+	console.log("%s does not exist. Exiting.", instr);
+	process.exit(1);
     }
     return instr;
 };
@@ -45,11 +46,12 @@ var downloadUrl = function(inUrl) {
     var downloadedFile = rest.get(htmlFileUrl).on('complete', function(result) {
     var isError = (result instanceof Error);
        if (isError) {
-        console.log('Error: ' + result.message,htmlFileUrl);
-        process.exit(1);
+	console.log('Error: ' + result.message,htmlFileUrl);
+	process.exit(1);
       }
     });
     fs.writeFileSync(indexFile,downloadedFile);
+	validDownloadFileSpecified = true;
 	return downloadedFile;
 };
 
@@ -74,16 +76,21 @@ var checkHtmlFile = function(htmlfile, checksfile) {
     return out;
 };
 
-if(require.main == module) {
+if (require.main == module) {
     program
 	.option('-c, --checks ', 'Path to checks.json', assertFileExists, CHECKSFILE_DEFAULT)
-	.option('-u, --url ','URL of index.html file', downloadUrl,DOWNLOAD_DEFAULT)
+	.option('-f, --file ','File name of index.html file', assertFileExists, HTMLFILE_DEFAULT)
+	.option('-u, --url ','URL of index.html file', downloadUrl, DOWNLOAD_DEFAULT)
 	.parse(process.argv);
-   if (program.url !== null) {
-       var checkJson = checkHtmlFile(indexFile.toString(), program.checks);
-       var outJson = JSON.stringify(checkJson, null, 4);
-       console.log(outJson);
-   }
+   var checkJson;
+   if (validDownloadFileSpecified) {
+       checkJson = checkHtmlFile(indexFile.toString(), program.checks.toString());
+    } else {
+       checkJson = checkHtmlFile(program.file.toString(), program.checks.toString());
+	}
+    var outJson = JSON.stringify(checkJson, null, 4);
+    console.log(outJson);
+
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
